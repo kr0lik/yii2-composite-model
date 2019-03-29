@@ -1,0 +1,115 @@
+<?php
+namespace kr0lik\compositeModel\models;
+
+use yii\base\Model;
+use yii\db\ActiveRecord;
+use kr0lik\compositeModel\CompositeModelTrait;
+use kr0lik\recource\ResourceBehavior;
+
+class File extends Model
+{
+    public static $AllowedExtensions = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'];
+
+    public $file;
+    public $name;
+
+    protected $folder;
+
+    use CompositeModelTrait;
+
+    public function rules()
+    {
+        return [
+            [['name'], 'required'],
+            [['name'], 'string', 'max' => 125],
+            [['name'], 'trim'],
+            [['name'], 'filter', 'filter' => function ($value) { return str_replace('  ', ' ', $value); }],
+            [['file'], 'file', 'extensions' => static::$AllowedExtensions, 'checkExtensionByMimeType' => false, 'skipOnEmpty' => true],
+            [['file'], 'required', 'whenClient' => "function (attribute, value) {
+                return " . $this->isNewRecord . ";
+            }"]
+        ];
+    }
+
+    public function attributeLabels()
+    {
+        return [
+            'file' => 'Файл',
+            'name' => 'Название'
+        ];
+    }
+
+    public function behaviors()
+    {
+        return [
+            'resource' => [
+                'class' => ResourceBehavior::class,
+                'attributes' => ['file'],
+                'folder' => 'upload/file/' . $this->folder
+            ]
+        ];
+    }
+
+    public function getFile(): string
+    {
+        $resourceName = $this->file;
+
+        if (! $resourceName) return '';
+
+        $absoluteResourcePath = $this->getResource('file', true);
+
+        if (! file_exists($absoluteResourcePath)) {
+            return '';
+        }
+
+        return $this->getResource('file');
+    }
+
+    public function getName($defaultName = null): string
+    {
+        return $this->name ?: ($defaultName ?: strtoupper(pathinfo($this->file, PATHINFO_EXTENSION)));
+    }
+
+    public function getType()
+    {
+        $type = strtolower(pathinfo($this->file, PATHINFO_EXTENSION));
+
+        switch ($type) {
+            case 'doc':
+            case 'docx':
+                $type = 'word';
+                break;
+            case 'xls':
+            case 'xlsx':
+                $type = 'excel';
+                break;
+        }
+
+        return $type;
+    }
+
+    public function getSize()
+    {
+        $resourceName = $this->file;
+
+        if (! $resourceName) return 0;
+
+        $path = $this->getResource('file', true);
+
+        if (! file_exists($path)) {
+            return 0;
+        }
+
+        return filesize($path);
+    }
+
+    public function save()
+    {
+        $this->trigger(ActiveRecord::EVENT_BEFORE_INSERT);
+    }
+
+    public function delete()
+    {
+        $this->trigger(ActiveRecord::EVENT_BEFORE_DELETE);
+    }
+}

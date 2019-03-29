@@ -1,0 +1,27 @@
+{
+	"name": "kr0lik/yii2-composite-model",
+	"description": "Extension for composite models of postgres composite types for Yii2",
+	"type": "yii2-extension",
+	"keywords": ["yii2","resource","file","image","upload","postgres","postgres composite type","composite type"],
+	"license": "MIT",
+	"support": {
+        	"source": "https://github.com/kr0lik/yii2-composite-model"
+    	},
+	"authors": [
+		{
+			"name": "krolik",
+			"email": "krolik@yandex.ru"
+		}
+	],
+	"require": {
+		"php": ">=7.2",
+        	"yiisoft/yii2": "*",
+                "kr0lik/yii2-resource": "*",
+                "tigrov/yii2-pgsql": "*"
+	},
+	"autoload": {
+		"psr-4": {
+			"kr0lik\\compositeModel\\": ""
+		}
+	}
+}
