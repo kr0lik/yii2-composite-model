@@ -13,7 +13,7 @@ class CompositeResourceBehavior extends Behavior
         return [
             ActiveRecord::EVENT_BEFORE_INSERT => '_save',
             ActiveRecord::EVENT_BEFORE_UPDATE => '_save',
-            ActiveRecord::EVENT_BEFORE_DELETE => '_delete'
+            ActiveRecord::EVENT_AFTER_DELETE => '_delete'
         ];
     }
 
