@@ -25,13 +25,13 @@ class CompositeResourceBehavior extends Behavior
             if ($this->owner->$attribute) {
                 if (is_array($this->owner->$attribute)) {
                     foreach ($this->owner->$attribute as $model) {
-                        $model->trigger(ActiveRecord::EVENT_BEFORE_DELETE);
+                        $model->trigger(ActiveRecord::EVENT_AFTER_DELETE);
                         if ($model->hasErrors()) {
                             $status = false;
                         }
                     }
                 } else {
-                    $this->owner->$attribute->trigger(ActiveRecord::EVENT_BEFORE_DELETE);
+                    $this->owner->$attribute->trigger(ActiveRecord::EVENT_AFTER_DELETE);
                     if ($this->owner->$attribute->hasErrors()) {
                         $status = false;
                     }
