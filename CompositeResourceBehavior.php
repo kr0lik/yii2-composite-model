@@ -11,13 +11,14 @@ class CompositeResourceBehavior extends Behavior
     public function events()
     {
         return [
-            ActiveRecord::EVENT_BEFORE_INSERT => '_save',
-            ActiveRecord::EVENT_BEFORE_UPDATE => '_save',
-            ActiveRecord::EVENT_AFTER_DELETE => '_delete'
+            ActiveRecord::EVENT_BEFORE_INSERT => '_saveCompositeModel',
+            ActiveRecord::EVENT_BEFORE_UPDATE => '_saveCompositeModel',
+            ActiveRecord::EVENT_AFTER_UPDATE => '_clearCompositeModel',
+            ActiveRecord::EVENT_AFTER_DELETE => '_deleteCompositeModel'
         ];
     }
 
-    public function _delete($event)
+    public function _deleteCompositeModel($event)
     {
         $status = true;
 
@@ -42,7 +43,7 @@ class CompositeResourceBehavior extends Behavior
         return $status;
     }
 
-    public function _save($event)
+    public function _saveCompositeModel($event)
     {
         $status = true;
 
@@ -57,6 +58,31 @@ class CompositeResourceBehavior extends Behavior
                     }
                 } else {
                     $this->owner->$attribute->trigger(ActiveRecord::EVENT_BEFORE_INSERT);
+                    if ($this->owner->$attribute->hasErrors()) {
+                        $status = false;
+                    }
+                }
+            }
+        }
+
+        return $status;
+    }
+    
+    public function _clearCompositeModel($event)
+    {
+        $status = true;
+
+        foreach ($this->attributes as $attribute) {
+            if ($this->owner->$attribute) {
+                if (is_array($this->owner->$attribute)) {
+                    foreach ($this->owner->$attribute as $model) {
+                        $model->trigger(ActiveRecord::EVENT_AFTER_UPDATE);
+                        if ($model->hasErrors()) {
+                            $status = false;
+                        }
+                    }
+                } else {
+                    $this->owner->$attribute->trigger(ActiveRecord::EVENT_AFTER_UPDATE);
                     if ($this->owner->$attribute->hasErrors()) {
                         $status = false;
                     }
