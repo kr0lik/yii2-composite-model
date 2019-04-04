@@ -53,7 +53,8 @@ class Image extends Model
             'resource' => [
                 'class' => ResourceBehavior::class,
                 'attributes' => ['image'],
-                'folder' => 'upload/image/' . $this->folder
+                'folder' => 'upload/image/' . $this->folder,
+                'tmpFolder' => Yii::$app->params['UploadTempFolder']
             ]
         ];
     }
