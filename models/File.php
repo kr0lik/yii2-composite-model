@@ -45,7 +45,8 @@ class File extends Model
             'resource' => [
                 'class' => ResourceBehavior::class,
                 'attributes' => ['file'],
-                'folder' => 'upload/file/' . $this->folder
+                'folder' => 'upload/file/' . $this->folder,
+                'tmpFolder' => Yii::$app->params['UploadTempFolder']
             ]
         ];
     }
