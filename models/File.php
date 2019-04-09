@@ -1,6 +1,7 @@
 <?php
 namespace kr0lik\compositeModel\models;
 
+use Yii;
 use yii\base\Model;
 use yii\db\ActiveRecord;
 use kr0lik\compositeModel\CompositeModelTrait;
