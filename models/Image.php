@@ -1,7 +1,6 @@
 <?php
 namespace kr0lik\compositeModel\models;
 
-use kartik\form\ActiveForm;
 use Yii;
 use yii\base\Model;
 use yii\db\ActiveRecord;
