@@ -5,7 +5,7 @@ use Yii;
 use yii\base\Model;
 use yii\db\ActiveRecord;
 use kr0lik\compositeModel\CompositeModelTrait;
-use kr0lik\recource\ResourceBehavior;
+use kr0lik\resource\ResourceBehavior;
 
 class File extends Model
 {
