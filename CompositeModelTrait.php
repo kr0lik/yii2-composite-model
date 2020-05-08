@@ -1,6 +1,8 @@
 <?php
 namespace kr0lik\compositeModel;
 
+use yii\db\ActiveRecord;
+
 trait CompositeModelTrait
 {
     public $isNewRecord = true;
@@ -20,5 +22,15 @@ trait CompositeModelTrait
     public function getOldAttributes(): array
     {
         return $this->oldAttributes;
+    }
+
+    public function save()
+    {
+        $this->trigger(ActiveRecord::EVENT_BEFORE_INSERT);
+    }
+
+    public function delete()
+    {
+        $this->trigger(ActiveRecord::EVENT_BEFORE_DELETE);
     }
 }

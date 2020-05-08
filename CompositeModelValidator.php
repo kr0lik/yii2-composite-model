@@ -4,9 +4,9 @@ namespace kr0lik\compositeModel;
 use yii\validators\Validator;
 use yii\base\Model;
 
-class CompositeValidator extends Validator
+class CompositeModelValidator extends Validator
 {
-    public $message = 'Копозитный тип содержит ошибки.';
+    public $message = '{attribute} содержит ошибки.';
 
     /**
      * Add check for composite model
@@ -32,7 +32,7 @@ class CompositeValidator extends Validator
                         }
 
                         if ($compositeModel->hasErrors()) {
-                            $model->addError("{$attribute}{$i}", $this->message);
+                            $this->addError($model, $attribute, $this->message);
                         }
                     }
                 }
@@ -45,7 +45,7 @@ class CompositeValidator extends Validator
                 }
 
                 if ($model->$attribute->hasErrors()) {
-                    $model->addError($attribute, $this->message);
+                    $this->addError($model, $attribute, $this->message);
                 }
             }
         }

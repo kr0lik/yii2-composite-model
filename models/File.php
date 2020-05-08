@@ -13,6 +13,7 @@ class File extends Model
 
     public $file;
     public $name;
+    public $original_file_name;
 
     protected $folder;
 
@@ -22,8 +23,8 @@ class File extends Model
     {
         return [
             [['name'], 'required'],
-            [['name'], 'string', 'max' => 125],
-            [['name'], 'trim'],
+            [['name', 'original_file_name'], 'string', 'max' => 125],
+            [['name', 'original_file_name'], 'trim'],
             [['name'], 'filter', 'filter' => function ($value) { return str_replace('  ', ' ', $value); }],
             [['file'], 'file', 'extensions' => static::$AllowedExtensions, 'checkExtensionByMimeType' => false, 'skipOnEmpty' => true],
             [['file'], 'required', 'whenClient' => "function (attribute, value) {
@@ -36,7 +37,8 @@ class File extends Model
     {
         return [
             'file' => 'Файл',
-            'name' => 'Название'
+            'name' => 'Название',
+            'original_file_name' => 'Оригинальное название файла',
         ];
     }
 
@@ -103,15 +105,5 @@ class File extends Model
         }
 
         return filesize($path);
-    }
-
-    public function save()
-    {
-        $this->trigger(ActiveRecord::EVENT_BEFORE_INSERT);
-    }
-
-    public function delete()
-    {
-        $this->trigger(ActiveRecord::EVENT_BEFORE_DELETE);
     }
 }

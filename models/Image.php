@@ -17,6 +17,7 @@ class Image extends Model
 
     public $image;
     public $name;
+    public $original_file_name;
 
     protected $folder;
 
@@ -25,8 +26,8 @@ class Image extends Model
     public function rules()
     {
         return [
-            [['name'], 'string', 'max' => 125],
-            [['name'], 'trim'],
+            [['name', 'original_file_name'], 'string', 'max' => 125],
+            [['name', 'original_file_name'], 'trim'],
             [['name'], 'filter', 'filter' => function ($value) { return str_replace('  ', ' ', $value); }],
             //[['image'], 'image', 'extensions' => self::$AllowedExtensions, 'skipOnEmpty' => true, 'whenClient' => "function (attribute, value) {
             //    return false;
@@ -42,7 +43,8 @@ class Image extends Model
     {
         return [
             'image' => 'Изображение',
-            'name' => 'Название'
+            'name' => 'Название',
+            'original_file_name' => 'Оригинальное название файла',
         ];
     }
 
@@ -61,7 +63,7 @@ class Image extends Model
     public function getImage($filter = null, $defaultImage = null)
     {
         $resourceName = trim($this->image, '"\'');
-        $defaultImage = $defaultImage ?: Yii::$app->params['DefaultImage'];
+        $defaultImage = $defaultImage ?: (Yii::$app->params['DefaultImage'] ?? '');
 
         if (! $resourceName) return $defaultImage;
 
@@ -83,15 +85,5 @@ class Image extends Model
     public function getName($num = null, $name = null)
     {
         return ($name ?: $this->name) . ($num ? " Фото № $num" : '');
-    }
-
-    public function save()
-    {
-        $this->trigger(ActiveRecord::EVENT_BEFORE_INSERT);
-    }
-
-    public function delete()
-    {
-        $this->trigger(ActiveRecord::EVENT_BEFORE_DELETE);
     }
 }
