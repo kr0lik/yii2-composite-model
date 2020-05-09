@@ -1,28 +1,20 @@
 <?php
 namespace kr0lik\compositeModel;
 
-use Yii;
-use yii\web\UploadedFile;
 use yii\base\Model;
+use yii\web\UploadedFile;
 
 class CompositeResourceFabric
 {
     /**
      * Create and load single composite model
-     *
-     * @param string $compositeModelClass
-     * @param string $compositeModelAttribute
-     * @return Model
      */
-    public static function createSingle(string $compositeModelClass, string $compositeModelAttribute): Model
+    public static function createSingle(string $compositeModelClass, string $resourceAttribute): Model
     {
-        $compositeModel = new $compositeModelClass;
-        $compositeModel->isNewRecord = false;
+        $compositeModel = CompositeModelFabric::createSingle($compositeModelClass);
 
-        $compositeModel->load(Yii::$app->request->post());
-
-        if ($newFile = UploadedFile::getInstance(new $compositeModel, $compositeModelAttribute)) {
-            $compositeModel->$compositeModelAttribute = $newFile;
+        if ($newFile = UploadedFile::getInstance($compositeModel, $resourceAttribute)) {
+            $compositeModel->$resourceAttribute = $newFile;
         }
 
         return $compositeModel;
@@ -31,24 +23,16 @@ class CompositeResourceFabric
     /**
      * Create and load resource to a multiple composite model
      *
-     * @param string $compositeModelClass
-     * @param string $compositeModelAttribute
-     * @return array Array of composite models
+     * @return Model[] Array of composite models
      */
-    public static function createMultiple(string $compositeModelClass, string $compositeModelAttribute): array
+    public static function createMultiple(string $compositeModelClass, string $resourceAttribute): array
     {
-        $post = Yii::$app->request->post((new $compositeModelClass)->formName(), []);
+        $models = CompositeModelFabric::createMultiple($compositeModelClass);
 
-        $models = [];
-        foreach ($post as $i => $data) {
-            $newCompositeModel = new $compositeModelClass($data);
-            $newCompositeModel->isNewRecord = false;
-
-            if ($newFile = UploadedFile::getInstance($newCompositeModel, "[{$i}]$compositeModelAttribute")) {
-                $newCompositeModel->$compositeModelAttribute = $newFile;
+        foreach ($models as $i => $model) {
+            if ($newFile = UploadedFile::getInstance($model, "[{$i}]$resourceAttribute")) {
+                $model->$resourceAttribute = $newFile;
             }
-
-            $models[$i] = $newCompositeModel;
         }
 
         return $models;
