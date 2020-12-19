@@ -6,6 +6,9 @@ use yii\base\Model;
 
 class CompositeModelValidator extends Validator
 {
+    /**
+     * @var string
+     */
     public $message = '{attribute} содержит ошибки.';
 
     /**
@@ -18,36 +21,35 @@ class CompositeModelValidator extends Validator
      */
     public $function;
 
-    public function validateAttribute($model, $attribute)
+    public function validateAttribute(Model $model, string $attribute): void
     {
         if ($model->$attribute) {
             if (is_array($model->$attribute)) {
                 foreach ($model->$attribute as $i => $compositeModel) {
                     if ($compositeModel instanceof Model) {
-                        $compositeModel->validate();
-
-                        if ($this->function) {
-                            $function = $this->function;
-                            $function($compositeModel);
-                        }
-
-                        if ($compositeModel->hasErrors()) {
-                            $this->addError($model, $attribute, $this->message);
-                        }
+                        $this->validateCompositeModel($model, $attribute, $compositeModel);
                     }
                 }
-            } elseif ($model->$attribute instanceof Model) {
-                $model->$attribute->validate();
-
-                if ($this->function) {
-                    $function = $this->function;
-                    $function($model->$attribute);
-                }
-
-                if ($model->$attribute->hasErrors()) {
-                    $this->addError($model, $attribute, $this->message);
+            } else {
+                $compositeModel = $model->$attribute;
+                if ($compositeModel instanceof Model) {
+                    $this->validateCompositeModel($model, $attribute, $compositeModel);
                 }
             }
+        }
+    }
+
+    private function validateCompositeModel(Model $model, string $attribute, Model $compositeModel): void
+    {
+        $compositeModel->validate();
+
+        if ($this->function) {
+            $function = $this->function;
+            $function($compositeModel);
+        }
+
+        if ($compositeModel->hasErrors()) {
+            $this->addError($model, $attribute, $this->message);
         }
     }
 }

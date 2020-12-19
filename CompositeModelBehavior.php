@@ -2,6 +2,7 @@
 namespace kr0lik\compositeModel;
 
 use yii\base\Behavior;
+use yii\base\Event;
 use yii\base\Model;
 use yii\db\ActiveRecord;
 
@@ -10,97 +11,42 @@ use yii\db\ActiveRecord;
  */
 class CompositeModelBehavior extends Behavior
 {
+    /**
+     * @var string[]
+     */
     public $attributes = [];
 
     public function events()
     {
         return [
-            Model::EVENT_BEFORE_VALIDATE => '_validateCompositeModel',
-            ActiveRecord::EVENT_BEFORE_INSERT => '_saveCompositeModel',
-            ActiveRecord::EVENT_BEFORE_UPDATE => '_saveCompositeModel',
-            ActiveRecord::EVENT_AFTER_UPDATE => '_clearCompositeModel',
-            ActiveRecord::EVENT_AFTER_DELETE => '_deleteCompositeModel',
+            ActiveRecord::EVENT_BEFORE_INSERT => '_triggerEvent',
+            ActiveRecord::EVENT_AFTER_INSERT => '_triggerEvent',
+            ActiveRecord::EVENT_BEFORE_UPDATE => '_triggerEvent',
+            ActiveRecord::EVENT_AFTER_UPDATE => '_triggerEvent',
+            ActiveRecord::EVENT_BEFORE_DELETE => '_triggerEvent',
+            ActiveRecord::EVENT_AFTER_DELETE => '_triggerEvent',
         ];
     }
 
-    public function _validateCompositeModel($event)
-    {
-        $status = true;
-
-        $validator = new CompositeModelValidator();
-        foreach ($this->attributes as $attribute) {
-            $validator->validateAttribute($this->owner, $attribute);
-        }
-
-        return !$this->owner->hasErrors();
-    }
-
-    public function _saveCompositeModel($event)
+    public function _triggerEvent(Event $event): bool
     {
         $status = true;
 
         foreach ($this->attributes as $attribute) {
             if ($this->owner->$attribute) {
                 if (is_array($this->owner->$attribute)) {
+                    /** @var Model $model */
                     foreach ($this->owner->$attribute as $model) {
-                        $model->trigger(ActiveRecord::EVENT_BEFORE_INSERT);
+                        $model->trigger($event->name);
                         if ($model->hasErrors()) {
                             $status = false;
                         }
                     }
                 } else {
-                    $this->owner->$attribute->trigger(ActiveRecord::EVENT_BEFORE_INSERT);
-                    if ($this->owner->$attribute->hasErrors()) {
-                        $status = false;
-                    }
-                }
-            }
-        }
-
-        return $status;
-    }
-
-    public function _deleteCompositeModel($event)
-    {
-        $status = true;
-
-        foreach ($this->attributes as $attribute) {
-            if ($this->owner->$attribute) {
-                if (is_array($this->owner->$attribute)) {
-                    foreach ($this->owner->$attribute as $model) {
-                        $model->trigger(ActiveRecord::EVENT_AFTER_DELETE);
-                        if ($model->hasErrors()) {
-                            $status = false;
-                        }
-                    }
-                } else {
-                    $this->owner->$attribute->trigger(ActiveRecord::EVENT_AFTER_DELETE);
-                    if ($this->owner->$attribute->hasErrors()) {
-                        $status = false;
-                    }
-                }
-            }
-        }
-
-        return $status;
-    }
-    
-    public function _clearCompositeModel($event)
-    {
-        $status = true;
-
-        foreach ($this->attributes as $attribute) {
-            if ($this->owner->$attribute) {
-                if (is_array($this->owner->$attribute)) {
-                    foreach ($this->owner->$attribute as $model) {
-                        $model->trigger(ActiveRecord::EVENT_AFTER_UPDATE);
-                        if ($model->hasErrors()) {
-                            $status = false;
-                        }
-                    }
-                } else {
-                    $this->owner->$attribute->trigger(ActiveRecord::EVENT_AFTER_UPDATE);
-                    if ($this->owner->$attribute->hasErrors()) {
+                    /** @var Model $model */
+                    $model = $this->owner->$attribute;
+                    $model->trigger($event->name);
+                    if ($model->hasErrors()) {
                         $status = false;
                     }
                 }

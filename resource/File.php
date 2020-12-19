@@ -1,5 +1,5 @@
 <?php
-namespace kr0lik\compositeModel\models;
+namespace kr0lik\compositeModel\resource;
 
 use Yii;
 use yii\base\Model;
@@ -11,72 +11,65 @@ class File extends Model
 {
     public static $AllowedExtensions = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'];
 
-    public $file;
+    /**
+     * @var string|null
+     */
+    public $resource;
+    /**
+     * @var string|null
+     */
     public $name;
+    /**
+     * @var string|null
+     */
     public $original_file_name;
 
+    /**
+     * @var string
+     */
     protected $folder;
 
     use CompositeModelTrait;
+    use CompositeResourceTrait;
 
-    public function rules()
+    public function rules(): array
     {
         return [
             [['name'], 'required'],
             [['name', 'original_file_name'], 'string', 'max' => 125],
             [['name', 'original_file_name'], 'trim'],
             [['name'], 'filter', 'filter' => function ($value) { return str_replace('  ', ' ', $value); }],
-            [['file'], 'file', 'extensions' => static::$AllowedExtensions, 'checkExtensionByMimeType' => false, 'skipOnEmpty' => true],
-            [['file'], 'required', 'whenClient' => "function (attribute, value) {
+            [['resource'], 'file', 'extensions' => static::$AllowedExtensions, 'checkExtensionByMimeType' => false, 'skipOnEmpty' => true],
+            [['resource'], 'required', 'whenClient' => "function (attribute, value) {
                 return " . $this->isNewRecord . ";
             }"]
         ];
     }
 
-    public function attributeLabels()
+    public function attributeLabels(): array
     {
         return [
-            'file' => 'Файл',
+            'resource' => 'Файл',
             'name' => 'Название',
             'original_file_name' => 'Оригинальное название файла',
         ];
     }
 
-    public function behaviors()
+    public function behaviors(): array
     {
         return [
             'resource' => [
                 'class' => ResourceBehavior::class,
-                'attributes' => ['file'],
+                'attributes' => ['resource'],
                 'folder' => 'upload/file/' . $this->folder,
                 'tmpFolder' => Yii::$app->params['UploadTempFolder']
             ]
         ];
     }
 
-    public function getFile(): string
+    public function getType(): string
     {
-        $resourceName = $this->file;
-
-        if (! $resourceName) return '';
-
-        $absoluteResourcePath = $this->getResource('file', true);
-
-        if (! file_exists($absoluteResourcePath)) {
-            return '';
-        }
-
-        return $this->getResource('file');
-    }
-
-    public function getName($defaultName = null): string
-    {
-        return $this->name ?: ($defaultName ?: strtoupper(pathinfo($this->file, PATHINFO_EXTENSION)));
-    }
-
-    public function getType()
-    {
-        $type = strtolower(pathinfo($this->file, PATHINFO_EXTENSION));
+        $type = strtolower(pathinfo($this->resource, PATHINFO_EXTENSION));
 
         switch ($type) {
             case 'doc':
@@ -90,20 +83,5 @@ class File extends Model
         }
 
         return $type;
-    }
-
-    public function getSize()
-    {
-        $resourceName = $this->file;
-
-        if (! $resourceName) return 0;
-
-        $path = $this->getResource('file', true);
-
-        if (! file_exists($path)) {
-            return 0;
-        }
-
-        return filesize($path);
     }
 }
