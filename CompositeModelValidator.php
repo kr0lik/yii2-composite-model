@@ -21,7 +21,11 @@ class CompositeModelValidator extends Validator
      */
     public $function;
 
-    public function validateAttribute(Model $model, string $attribute): void
+    /**
+     * @param Model $model
+     * @param string $attribute
+     */
+    public function validateAttribute($model, $attribute): void
     {
         if ($model->$attribute) {
             if (is_array($model->$attribute)) {
